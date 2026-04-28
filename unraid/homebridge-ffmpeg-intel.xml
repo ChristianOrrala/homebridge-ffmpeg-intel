@@ -1,0 +1,41 @@
+<?xml version="1.0"?>
+<Container version="2">
+  <Name>homebridge-ffmpeg-intel</Name>
+  <Repository>ghcr.io/christianorrala/homebridge-ffmpeg-intel:latest</Repository>
+  <Registry>https://ghcr.io/christianorrala/homebridge-ffmpeg-intel</Registry>
+  <Network>host</Network>
+  <MyIP/>
+  <Shell>bash</Shell>
+  <Privileged>true</Privileged>
+  <Support>https://github.com/ChristianOrrala/homebridge-ffmpeg-intel/issues</Support>
+  <Project>https://github.com/ChristianOrrala/homebridge-ffmpeg-intel</Project>
+  <Overview>Homebridge (Ubuntu base) bundled with Jellyfin's hardware-accelerated FFmpeg build for Intel Quick Sync transcoding. Plugins must be configured to use the FFmpeg binary at /usr/lib/jellyfin-ffmpeg/ffmpeg (the stock /usr/bin/ffmpeg is left untouched).</Overview>
+  <Category>HomeAutomation: MediaApp:Other</Category>
+  <WebUI>http://[IP]:[PORT:8581]/</WebUI>
+  <TemplateURL>https://raw.githubusercontent.com/ChristianOrrala/homebridge-ffmpeg-intel/main/unraid/homebridge-ffmpeg-intel.xml</TemplateURL>
+  <Icon>https://raw.githubusercontent.com/homebridge/branding/master/logos/homebridge-color-square.png</Icon>
+  <ExtraParams>--device=/dev/dri:/dev/dri --group-add=44</ExtraParams>
+  <PostArgs/>
+  <CPUset/>
+  <DateInstalled/>
+  <DonateText/>
+  <DonateLink/>
+  <Description>Homebridge with Jellyfin FFmpeg for Intel Quick Sync hardware transcoding.&#xD;
+&#xD;
+After install, point any Homebridge plugin that calls FFmpeg (e.g. Unifi-Video) at:&#xD;
+&#xD;
+    /usr/lib/jellyfin-ffmpeg/ffmpeg&#xD;
+&#xD;
+Verify with: docker exec homebridge-ffmpeg-intel /usr/lib/jellyfin-ffmpeg/ffmpeg -version&#xD;
+&#xD;
+This image is AMD64-only by design (Intel hardware acceleration).</Description>
+  <Config Name="Homebridge Config" Target="/homebridge" Default="/mnt/user/appdata/homebridge-ffmpeg-intel" Mode="rw" Description="Homebridge configuration and data directory." Type="Path" Display="always" Required="true" Mask="false">/mnt/user/appdata/homebridge-ffmpeg-intel</Config>
+  <Config Name="Intel GPU (DRI)" Target="/dev/dri" Default="/dev/dri" Mode="rw" Description="Intel iGPU device passthrough for Quick Sync. Required for hardware-accelerated FFmpeg." Type="Device" Display="advanced" Required="true" Mask="false">/dev/dri</Config>
+  <Config Name="WebUI Port" Target="8581" Default="8581" Mode="tcp" Description="Homebridge Config UI port. Informational only when network mode is host." Type="Port" Display="always" Required="false" Mask="false">8581</Config>
+  <Config Name="TZ" Target="TZ" Default="America/Los_Angeles" Mode="" Description="Container timezone (e.g. America/Los_Angeles, Etc/UTC)." Type="Variable" Display="always" Required="true" Mask="false">America/Los_Angeles</Config>
+  <Config Name="HOMEBRIDGE_CONFIG_UI" Target="HOMEBRIDGE_CONFIG_UI" Default="1" Mode="" Description="Enable the Homebridge Config UI (1 = on, 0 = off)." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
+  <Config Name="HOMEBRIDGE_CONFIG_UI_PORT" Target="HOMEBRIDGE_CONFIG_UI_PORT" Default="8581" Mode="" Description="Port the Config UI listens on." Type="Variable" Display="always" Required="false" Mask="false">8581</Config>
+  <Config Name="ENABLE_AVAHI" Target="ENABLE_AVAHI" Default="1" Mode="" Description="Enable Avahi/mDNS inside the container for HomeKit discovery." Type="Variable" Display="always" Required="false" Mask="false">1</Config>
+  <Config Name="PUID" Target="PUID" Default="99" Mode="" Description="User ID for file permissions (Unraid default: 99 = nobody)." Type="Variable" Display="advanced" Required="false" Mask="false">99</Config>
+  <Config Name="PGID" Target="PGID" Default="100" Mode="" Description="Group ID for file permissions (Unraid default: 100 = users)." Type="Variable" Display="advanced" Required="false" Mask="false">100</Config>
+</Container>
