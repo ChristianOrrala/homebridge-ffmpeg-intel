@@ -12,7 +12,11 @@ RUN set -e; \
     echo "Downloading Jellyfin FFmpeg for AMD64..." && \
     UBUNTU_CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")" && \
     REPO_BASE="https://repo.jellyfin.org/files/ffmpeg/ubuntu" && \
-    for SUFFIX in "${UBUNTU_CODENAME}-7.x" "${UBUNTU_CODENAME}" "latest-7.x"; do \
+    SUFFIXES="latest-7.x"; \
+    if [ -n "$UBUNTU_CODENAME" ]; then \
+        SUFFIXES="${UBUNTU_CODENAME}-7.x ${SUFFIXES}"; \
+    fi; \
+    for SUFFIX in $SUFFIXES; do \
         BASE_URL="${REPO_BASE}/${SUFFIX}/amd64/"; \
         LISTING="$(curl -fsSL "$BASE_URL" || true)"; \
         if echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
@@ -24,7 +28,7 @@ RUN set -e; \
         exit 1; \
     fi; \
     echo "Using Jellyfin FFmpeg repo: $BASE_URL" && \
-    LATEST_DEB=$(echo "$LISTING" | grep -oP 'jellyfin-ffmpeg7_[^"]*\.deb' | sort -V | tail -1) && \
+    LATEST_DEB=$(echo "$LISTING" | grep -oP "jellyfin-ffmpeg7_[^\"'<>]*\\.deb" | sort -V | tail -1) && \
     if [ -z "$LATEST_DEB" ]; then \
         echo "Failed to determine latest Jellyfin FFmpeg package from $BASE_URL" >&2; \
         exit 1; \
