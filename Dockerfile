@@ -2,47 +2,24 @@ FROM homebridge/homebridge:ubuntu
 
 USER root
 
-# Install dependencies
-RUN apt-get update && \
-    apt-get install -y wget curl && \
-    rm -rf /var/lib/apt/lists/*
-
-# Download and install the latest Jellyfin FFmpeg (AMD64 only)
+# Install Jellyfin FFmpeg from the official Jellyfin APT repo. The repo serves
+# per-codename builds, so APT picks one compiled against the base image's libc6.
+# Directory-listing scraping of repo.jellyfin.org/files/ffmpeg/ no longer works
+# (the host returns 403 to non-browser clients); the APT path is the documented
+# install method and lets APT resolve dependencies on its own.
 RUN set -e; \
-    echo "Downloading Jellyfin FFmpeg for AMD64..." && \
-    UBUNTU_CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")" && \
-    REPO_BASE="https://repo.jellyfin.org/files/ffmpeg/ubuntu" && \
-    SUFFIXES="latest-7.x"; \
-    if [ -n "$UBUNTU_CODENAME" ]; then \
-        SUFFIXES="${UBUNTU_CODENAME}-7.x ${SUFFIXES}"; \
-    fi; \
-    LISTING=""; \
-    for SUFFIX in $SUFFIXES; do \
-        BASE_URL="${REPO_BASE}/${SUFFIX}/amd64/"; \
-        if LISTING="$(curl -fsSL "$BASE_URL")"; then \
-            if echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
-                break; \
-            fi; \
-        else \
-            echo "Failed to fetch Jellyfin FFmpeg listing from $BASE_URL" >&2; \
-        fi; \
-    done; \
-    if ! echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
-        echo "No Jellyfin FFmpeg packages found for ${UBUNTU_CODENAME:-unknown}." >&2; \
-        exit 1; \
-    fi; \
-    echo "Using Jellyfin FFmpeg repo: $BASE_URL" && \
-    LATEST_DEB=$(echo "$LISTING" | grep -oP "jellyfin-ffmpeg7_[^\"]*\\.deb" | sort -V | tail -1) && \
-    if [ -z "$LATEST_DEB" ]; then \
-        echo "Failed to determine latest Jellyfin FFmpeg package from $BASE_URL" >&2; \
-        exit 1; \
-    fi; \
-    echo "Found package: $LATEST_DEB" && \
-    wget -O /tmp/jellyfin-ffmpeg.deb "${BASE_URL}${LATEST_DEB}" && \
-    echo "Downloaded package, installing..." && \
-    dpkg -i /tmp/jellyfin-ffmpeg.deb 2>&1 || (echo "Installation failed, installing dependencies..." && apt-get update && apt-get install -f -y && dpkg -i /tmp/jellyfin-ffmpeg.deb) && \
-    echo "Package installed successfully" && \
-    rm /tmp/jellyfin-ffmpeg.deb
+    apt-get update && \
+    apt-get install -y --no-install-recommends ca-certificates curl gnupg && \
+    . /etc/os-release && \
+    install -d -m 0755 /etc/apt/keyrings && \
+    curl -fsSL https://repo.jellyfin.org/jellyfin_team.gpg.key \
+        | gpg --dearmor -o /etc/apt/keyrings/jellyfin.gpg && \
+    chmod 0644 /etc/apt/keyrings/jellyfin.gpg && \
+    printf 'Types: deb\nURIs: https://repo.jellyfin.org/%s\nSuites: %s\nComponents: main\nArchitectures: amd64\nSigned-By: /etc/apt/keyrings/jellyfin.gpg\n' \
+        "$ID" "$VERSION_CODENAME" > /etc/apt/sources.list.d/jellyfin.sources && \
+    apt-get update && \
+    apt-get install -y --no-install-recommends jellyfin-ffmpeg7 && \
+    rm -rf /var/lib/apt/lists/*
 
 # Verify installation
 RUN echo "Verifying FFmpeg installation..." && \
