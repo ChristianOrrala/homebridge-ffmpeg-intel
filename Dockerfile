@@ -24,7 +24,7 @@ RUN set -e; \
         exit 1; \
     fi; \
     echo "Using Jellyfin FFmpeg repo: $BASE_URL" && \
-    LATEST_DEB=$(echo "$LISTING" | grep -oP 'jellyfin-ffmpeg7_[^"]*\\.deb' | sort -V | tail -1) && \
+    LATEST_DEB=$(echo "$LISTING" | grep -oP 'jellyfin-ffmpeg7_[^"]*\.deb' | sort -V | tail -1) && \
     if [ -z "$LATEST_DEB" ]; then \
         echo "Failed to determine latest Jellyfin FFmpeg package from $BASE_URL" >&2; \
         exit 1; \
