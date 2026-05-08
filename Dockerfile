@@ -12,12 +12,19 @@ RUN set -e; \
     echo "Downloading Jellyfin FFmpeg for AMD64..." && \
     UBUNTU_CODENAME="$(. /etc/os-release && echo "${VERSION_CODENAME:-}")" && \
     REPO_BASE="https://repo.jellyfin.org/files/ffmpeg/ubuntu" && \
-    SUFFIXES="${UBUNTU_CODENAME:+${UBUNTU_CODENAME}-7.x }latest-7.x"; \
+    SUFFIXES="latest-7.x"; \
+    if [ -n "$UBUNTU_CODENAME" ]; then \
+        SUFFIXES="${UBUNTU_CODENAME}-7.x ${SUFFIXES}"; \
+    fi; \
+    LISTING=""; \
     for SUFFIX in $SUFFIXES; do \
         BASE_URL="${REPO_BASE}/${SUFFIX}/amd64/"; \
-        LISTING="$(curl -fsSL "$BASE_URL" || true)"; \
-        if echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
-            break; \
+        if LISTING="$(curl -fsSL "$BASE_URL")"; then \
+            if echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
+                break; \
+            fi; \
+        else \
+            echo "Failed to fetch Jellyfin FFmpeg listing from $BASE_URL" >&2; \
         fi; \
     done; \
     if ! echo "$LISTING" | grep -q 'jellyfin-ffmpeg7_'; then \
